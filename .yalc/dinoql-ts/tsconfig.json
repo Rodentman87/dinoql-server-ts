@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"target": "es2017",
-		"module": "ES2022",
+		"module": "ESNext",
 		"lib": ["dom", "es6", "es2017", "esnext.asynciterable"],
 		"skipLibCheck": true,
 		"sourceMap": true,
@@ -19,10 +19,12 @@
 		"allowSyntheticDefaultImports": true,
 		"esModuleInterop": true,
 		"emitDecoratorMetadata": true,
+		"declaration": true,
 		"experimentalDecorators": true,
 		"resolveJsonModule": true,
 		"baseUrl": ".",
-		"declaration": true
+		"typeRoots": ["node_modules/@types", "./src/antlr4-types"],
+		"allowJs": true
 	},
 	"exclude": ["node_modules"],
 	"include": ["./src/**/*.ts"]

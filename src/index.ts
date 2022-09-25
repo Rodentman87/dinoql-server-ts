@@ -1,1 +1,2 @@
-export { DinoQLServer } from "./DinoQLServer";
+export { DinoQLServer } from "./DinoQLServer.js";
+export { ResourceHandler } from "./ResourceHandler.js";
