@@ -3,12 +3,16 @@
 	"version": "1.0.0",
 	"main": "dist/index.js",
 	"license": "MIT",
-	"type": "module",
 	"scripts": {
-		"build": "tsc"
+		"prebuild": "rimraf dist",
+		"build": "tsc",
+		"pretest": "yarn generate",
+		"test": "yarn build && node ./dist/test.js",
+		"generate": "node ./scripts/generate.js"
 	},
 	"dependencies": {
-		"antlr4": "^4.10.1"
+		"peggy": "^2.0.1",
+		"ts-pegjs": "^2.1.0"
 	},
-	"yalcSig": "dc48eb72631a0edcc488e711aa48a2d2"
+	"yalcSig": "33cea894cc10c0d85bbfcd02baee76ae"
 }

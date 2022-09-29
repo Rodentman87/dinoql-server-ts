@@ -4,7 +4,12 @@ import {
 	FastifyRequest,
 	FastifyReply,
 } from "fastify";
-import { DinoQLDocument, DinoQLResource } from "dinoql-ts";
+import {
+	DeserializationError,
+	DinoQLDocument,
+	DinoQLResource,
+	Serializer,
+} from "dinoql-ts";
 import { ResourceHandler } from "./ResourceHandler.js";
 import { RequestError } from "./Errors.js";
 
@@ -30,6 +35,7 @@ export interface ServerOptions {
 export class DinoQLServer {
 	schema: DinoQLDocument;
 	app: FastifyInstance;
+	serializer: Serializer;
 
 	private resourceHandlers = new Map<string, ResourceHandler>();
 
@@ -38,6 +44,8 @@ export class DinoQLServer {
 
 		options.schema.validateSchema();
 		this.schema = options.schema;
+
+		this.serializer = new Serializer(this.schema);
 
 		this.handleRequest = this.handleRequest.bind(this);
 		this.handleServerReq = this.handleServerReq.bind(this);
@@ -109,7 +117,7 @@ export class DinoQLServer {
 					allErrors = false;
 				} catch (e) {
 					outputs[request.batchId] = {
-						_error: e.message,
+						_error: e.messages,
 					};
 				}
 			}
@@ -181,12 +189,13 @@ export class DinoQLServer {
 			throw new RequestError(400, "Method not found");
 		}
 		// Check if the params are valid
-		const params = method.validateParameters(request.params);
-		if (params !== true) {
-			throw new RequestError(
-				400,
-				Object.keys(params).map((key) => params[key])
-			);
+		let params;
+		try {
+			params = this.serializer.deserializeParameters(request.params, method);
+		} catch (e) {
+			if (e instanceof DeserializationError)
+				throw new RequestError(400, e.toJSON());
+			else throw e;
 		}
 		if (request.relations) {
 			const valid = this.validateRelations(resource, request.relations);
@@ -201,10 +210,10 @@ export class DinoQLServer {
 		let result;
 		if (!request.id || request.id === "static") {
 			// @ts-expect-error We've already validated that the key exists
-			result = handler[request.method](request.params);
+			result = handler[request.method](params);
 		} else {
 			// @ts-expect-error We've already validated that the key exists
-			result = handler[request.method](request.id, request.params);
+			result = handler[request.method](request.id, params);
 		}
 		const resolvedResult = await result;
 		let final = resolvedResult;
